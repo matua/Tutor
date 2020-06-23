@@ -1,7 +1,7 @@
 import java.util.*;
 
-public class MyIntegerList implements List {
-    private int myList[] = new int[];
+public class MyIntegerList implements List<Integer> {
+    private int[] myList = new int[0];
 
     public MyIntegerList() {
     }
@@ -14,11 +14,7 @@ public class MyIntegerList implements List {
 
     @Override
     public boolean isEmpty() {
-        if (myList.length == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return myList.length == 0;
     }
 
     @Override
@@ -33,7 +29,7 @@ public class MyIntegerList implements List {
 
     @Override
     public Iterator iterator() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -42,11 +38,10 @@ public class MyIntegerList implements List {
     }
 
     @Override
-    public boolean add(Object o) {
+    public boolean add(Integer o) {
         int[] myNewList = Arrays.copyOf(myList, myList.length + 1);
-        myNewList[myList.length] = (int) o;
+        myNewList[myList.length] = o;
         myList = myNewList;
-        ;
         return true;
     }
 
@@ -54,9 +49,9 @@ public class MyIntegerList implements List {
     public boolean remove(Object o) {
         for (int i = 0; i < myList.length; i++) {
             if (myList[i] == (int) o) {
-                for (int j = i; j < myList.length - 1; j++) {
-                    myList[j] = myList[j + 1];
-                }
+                if (myList.length - 1 - i >= 0) System.arraycopy(myList, i + 1, myList, i, myList.length - 1 - i);
+                int[] listWithRemovedElement = new int[myList.length - 1];
+                System.arraycopy(myList, 0, listWithRemovedElement, 0, myList.length - 1);
                 return true;
             }
         }
@@ -69,25 +64,18 @@ public class MyIntegerList implements List {
         int aLen = myList.length;
         int bLen = newList.length;
         System.arraycopy(myList, 0, newList, 0, aLen);
-        System.arraycopy(c.toArray(), 0, newList, aLen, bLen);
+        System.arraycopy(c.toArray(), 0, newList, aLen + 1, bLen);
         return checkMyList(newList);
     }
 
     @Override
     public boolean addAll(int index, Collection c) {
+        indexOutOfBoundException(index);
         Object[] arrayToAdd = c.toArray();
-
         int[] newList = new int[myList.length + c.size()];
-
-        for (int i = 0; i < index; i++) {
-            newList[i] = myList[i];
-        }
-        for (int i = index; i < index + c.size(); i++) {
-            newList[i] = (int) arrayToAdd[i - index];
-        }
-        for (int i = index + c.size(); i < newList.length ; i++) {
-            newList[i] = myList[i];
-        }
+        System.arraycopy(myList, 0, newList, 0, index);
+        System.arraycopy(arrayToAdd, 0, newList, index, arrayToAdd.length);
+        System.arraycopy(myList, index, newList, index + arrayToAdd.length, myList.length - index);
         return checkMyList(newList);
     }
 
@@ -97,43 +85,67 @@ public class MyIntegerList implements List {
     }
 
     @Override
-    public Object get(int index) {
-        return null;
+    public Integer get(int index) {
+        return myList[index];
+    }
+
+
+    @Override
+    public Integer set(int index, Integer element) {
+        int previousElement = myList[index];
+        myList[index] = element;
+        return previousElement;
     }
 
     @Override
-    public Object set(int index, Object element) {
-        return null;
+    public void add(int index, Integer element) {
+        indexOutOfBoundException(index);
+        int[] newList = new int[myList.length + 1];
+        System.arraycopy(myList, 0, newList, 0, index);
+        newList[index + 1] = element;
+        System.arraycopy(myList, index, newList, index + 1, myList.length - index);
     }
 
     @Override
-    public void add(int index, Object element) {
+    public Integer remove(int index) {
+        int removedElement = myList[index];
+        int[] newList = new int[myList.length - 1];
 
-    }
-
-    @Override
-    public Object remove(int index) {
-        return null;
+        System.arraycopy(myList, 0, newList, 0, index);
+        System.arraycopy(myList, index + 1, newList, index, myList.length - index);
+        return removedElement;
     }
 
     @Override
     public int indexOf(Object o) {
-        return 0;
+        int result = -1;
+        for (int i = 0; i < myList.length; i++) {
+            if (myList[i] == (int) o) {
+                result = i;
+            }
+        }
+        return result;
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        return 0;
+        int result = -1;
+        for (int i = myList.length - 1; i > 0; i--) {
+            if (myList[i] == (int) o) {
+                result = i;
+            }
+        }
+        return result;
     }
 
     @Override
     public ListIterator listIterator() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ListIterator listIterator(int index) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -162,11 +174,17 @@ public class MyIntegerList implements List {
     }
 
     private boolean checkMyList(int[] newList) {
-        if (newList.equals(myList)) {
+        if (Arrays.equals(newList, myList)) {
             return false;
         } else {
             myList = newList;
             return true;
+        }
+    }
+
+    private void indexOutOfBoundException(int index) {
+        if (index >= myList.length) {
+            throw new IllegalArgumentException("Index is out of bound of the source");
         }
     }
 }
